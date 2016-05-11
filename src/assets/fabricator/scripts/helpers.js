@@ -1,6 +1,6 @@
-( function( fabricator ) {
+( function( Fabricator ) {
 
-	fabricator.helpers = function() {
+	Fabricator.helpers = function() {
 
 		/**
 		 * Helper to add a className to an element
@@ -38,4 +38,4 @@
 		};
 	}();
 
-})( fabricator );
+})( Fabricator );
