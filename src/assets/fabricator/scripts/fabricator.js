@@ -4,6 +4,67 @@
  */
 var Fabricator = window.Fabricator = {};
 
+/**
+ * Default options
+ * @type {Object}
+ */
+Fabricator.options = {
+	toggles: {
+		labels: true,
+		notes: true,
+		code: false
+	},
+	menu: false,
+	mq: '(min-width: 60em)'
+};
+
+// open menu by default if large screen
+Fabricator.options.menu = window.matchMedia(Fabricator.options.mq).matches;
+
+/**
+ * Feature detection
+ * @type {Object}
+ */
+Fabricator.test = {};
+
+// test for sessionStorage
+Fabricator.test.sessionStorage = (function () {
+	var test = '_f';
+	try {
+		sessionStorage.setItem(test, test);
+		sessionStorage.removeItem(test);
+		return true;
+	} catch(e) {
+		return false;
+	}
+}());
+
+// create storage object if it doesn't exist; store options
+if (Fabricator.test.sessionStorage) {
+	sessionStorage.Fabricator = sessionStorage.Fabricator || JSON.stringify(Fabricator.options);
+}
+
+
+/**
+ * Cache DOM
+ * @type {Object}
+ */
+Fabricator.dom = {
+	root: document.querySelector('html'),
+	primaryMenu: document.querySelector('.f-menu'),
+	menuItems: document.querySelectorAll('.f-menu li a'),
+	menuToggle: document.querySelector('.f-menu-toggle')
+};
+
+
+/**
+ * Get current option values from session storage
+ * @return {Object}
+ */
+Fabricator.getOptions = function () {
+	return (Fabricator.test.sessionStorage) ? JSON.parse(sessionStorage.Fabricator) : Fabricator.options;
+};
+
 (function( window, document ) {
 	'use strict';
 
@@ -17,61 +78,7 @@ var Fabricator = window.Fabricator = {};
 			function initialize() {
 				var self = this;
 
-				/**
-				 * Default options
-				 * @type {Object}
-				 */
-				self.options = {
-					menu: false,
-					mq: '(min-width: 60em)'
-				};
-
-				// open menu by default if large screen
-				self.options.menu = window.matchMedia(self.options.mq).matches;
-
-				/**
-				 * Feature detection
-				 * @type {Object}
-				 */
-				self.test = {};
-
-				// test for sessionStorage
-				self.test.sessionStorage = (function () {
-					var test = '_f';
-					try {
-						sessionStorage.setItem(test, test);
-						sessionStorage.removeItem(test);
-						return true;
-					} catch(e) {
-						return false;
-					}
-				}());
-
-				// create storage object if it doesn't exist; store options
-				if (self.test.sessionStorage) {
-					sessionStorage.self = sessionStorage.self || JSON.stringify(self.options);
-				}
-
-
-				/**
-				 * Cache DOM
-				 * @type {Object}
-				 */
-				self.dom = {
-					root: document.querySelector('html'),
-					primaryMenu: document.querySelector('.f-menu'),
-					menuItems: document.querySelectorAll('.f-menu li a'),
-					menuToggle: document.querySelector('.f-menu-toggle')
-				};
-
-
-				/**
-				 * Get current option values from session storage
-				 * @return {Object}
-				 */
-				self.getOptions = function () {
-					return (self.test.sessionStorage) ? JSON.parse(sessionStorage.self) : self.options;
-				};
+				console.log('initialize');
 
 			}
 
@@ -79,6 +86,7 @@ var Fabricator = window.Fabricator = {};
 			 * Build color chips
 			 */
 			function buildColorChips() {
+				console.log('buildColorChips');
 
 				var chips = document.querySelectorAll('.f-color-chip'),
 					color;
@@ -95,6 +103,7 @@ var Fabricator = window.Fabricator = {};
 			 * Add `f-active` class to active menu item
 			 */
 			function setActiveItem() {
+				console.log('setActiveItem');
 
 				/**
 				 * Match the window location with the menu item, set menu item as active
@@ -113,16 +122,16 @@ var Fabricator = window.Fabricator = {};
 						href;
 
 					// find the current section in the items array
-					for (var i = fabricator.dom.menuItems.length - 1; i >= 0; i--) {
+					for (var i = Fabricator.dom.menuItems.length - 1; i >= 0; i--) {
 
-						var item = fabricator.dom.menuItems[i];
+						var item = Fabricator.dom.menuItems[i];
 						// get item href without first slash
 						href = item.getAttribute('href').replace(/^\//g, '');
 
 						if ( href === current ) {
-							fabricator.helpers.addClass( item, 'current');
+							Fabricator.helpers.addClass( item, 'current');
 						} else {
-							fabricator.helpers.removeClass( item, 'current');
+							Fabricator.helpers.removeClass( item, 'current');
 						}
 					}
 				};
@@ -138,18 +147,19 @@ var Fabricator = window.Fabricator = {};
 			 * @return {Object} fabricator
 			 */
 			function menuToggle() {
+				console.log('menuToggle');
 
 				// shortcut menu DOM
-				var toggle = fabricator.dom.menuToggle;
+				var toggle = Fabricator.dom.menuToggle;
 
-				var options = fabricator.getOptions();
+				var options = Fabricator.getOptions();
 
 				// toggle classes on certain elements
 				var toggleClasses = function () {
 					//TODO: Replace ClassList!
-					var menuClassList = fabricator.dom.root.className.split(' ');
-					options.menu = !fabricator.dom.root.classList.contains('f-menu-active');
-					fabricator.dom.root.classList.toggle('f-menu-active');
+					var menuClassList = Fabricator.dom.root.className.split(' ');
+					options.menu = !Fabricator.dom.root.classList.contains('f-menu-active');
+					Fabricator.dom.root.classList.toggle('f-menu-active');
 
 					if (self.test.sessionStorage) {
 						sessionStorage.setItem('fabricator', JSON.stringify(options));
@@ -171,13 +181,13 @@ var Fabricator = window.Fabricator = {};
 
 				// close menu when clicking on item (for collapsed menu view)
 				var closeMenu = function () {
-					if (!window.matchMedia(self.options.mq).matches) {
+					if (!window.matchMedia(Fabricator.options.mq).matches) {
 						toggleClasses();
 					}
 				};
 
-				for (var i = 0; i < fabricator.dom.menuItems.length; i++) {
-					fabricator.dom.menuItems[i].addEventListener('click', closeMenu);
+				for (var i = 0; i < Fabricator.dom.menuItems.length; i++) {
+					Fabricator.dom.menuItems[i].addEventListener('click', closeMenu);
 				}
 			}
 
@@ -185,6 +195,7 @@ var Fabricator = window.Fabricator = {};
 			 * Automatically select code when code block is clicked
 			 */
 			function bindCodeAutoSelect() {
+				console.log('bindCodeAutoSelect');
 
 				var codeBlocks = document.querySelectorAll('.f-item-code');
 
@@ -207,21 +218,22 @@ var Fabricator = window.Fabricator = {};
 			 * Also attach a media query listener to close the menu when resizing to smaller screen.
 			 */
 			function setInitialMenuState() {
+				console.log('setInitialMenuState');
 
 				// root element
 				var root = document.querySelector('html');
 
-				var mq = window.matchMedia(self.options.mq);
+				var mq = window.matchMedia(Fabricator.options.mq);
 
 				// if small screen
 				var mediaChangeHandler = function (list) {
 					if (!list.matches) {
-						fabricator.helpers.removeClass( root, 'f-menu-active');
+						Fabricator.helpers.removeClass( root, 'f-menu-active');
 					} else {
 						if (self.getOptions().menu) {
-							fabricator.helpers.addClass( root, 'f-menu-active');
+							Fabricator.helpers.addClass( root, 'f-menu-active');
 						} else {
-							fabricator.helpers.removeClass( root, 'f-menu-active');
+							Fabricator.helpers.removeClass( root, 'f-menu-active');
 						}
 					}
 				};
@@ -234,6 +246,8 @@ var Fabricator = window.Fabricator = {};
 			 * Add fixed class to sidebar on scroll
 			 */
 			function fixSidebar() {
+				console.log('fixSidebar');
+
 				var dsHeaderTop  = document.querySelector( '.f-header-top' ),
 					dsHeader  = document.querySelector( '.f-header' ),
 					dsSidebar = document.querySelector( '.f-menu' ),
@@ -258,9 +272,9 @@ var Fabricator = window.Fabricator = {};
 					var topOffset = window.pageYOffset;
 
 					if ( window.pageYOffset > totalHeaderHeight ) {
-						fabricator.helpers.addClass( dsSidebar, 'fixed' );
+						Fabricator.helpers.addClass( dsSidebar, 'fixed' );
 					} else {
-						fabricator.helpers.removeClass( dsSidebar, 'fixed' );
+						Fabricator.helpers.removeClass( dsSidebar, 'fixed' );
 					}
 				};
 			}
@@ -277,7 +291,13 @@ var Fabricator = window.Fabricator = {};
 		}();
 
 		designsystem.initialize();
+		designsystem.setInitialMenuState();
+		designsystem.menuToggle();
+		designsystem.buildColorChips();
+		designsystem.setActiveItem();
+		designsystem.bindCodeAutoSelect();
+		designsystem.fixSidebar();
 
 	})( Fabricator );
 
-}).call( Fabricator, this, this.document );
+}).call( Fabricator, this );
